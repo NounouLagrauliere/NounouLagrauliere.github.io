@@ -1,17 +1,18 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { GalleryModule } from './gallery/gallery.module';
-import { HomeModule } from './home/home.module';
+import { GalleryComponent } from './gallery/gallery.component';
+import { HomeComponent } from './home/home.component';
 import { LoginComponent } from './login/login.component';
-import { MealModule } from './meal/meal.module';
-import { UsersModule } from './users/users.module';
+import { MealComponent } from './meal/meal.component';
+import { UsersComponent } from './users/users.component';
 
 const routes: Routes = [
-  { path: '', component: LoginComponent },
-  { path: 'home', loadChildren: () => HomeModule },
-  { path: 'gallery', loadChildren: () => GalleryModule },
-  { path: 'meal', loadChildren: () => MealModule },
-  { path: 'users', loadChildren: () => UsersModule }
+  { path: '', redirectTo: '/login', pathMatch: 'full'},
+  { path: 'login', component: LoginComponent },
+  { path: 'home', component: HomeComponent },
+  { path: 'gallery', component: GalleryComponent },
+  { path: 'meal', component: MealComponent },
+  { path: 'users', component: UsersComponent }
 ];
 
 @NgModule({

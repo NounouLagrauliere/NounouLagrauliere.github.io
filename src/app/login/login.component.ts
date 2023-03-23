@@ -8,9 +8,9 @@ import { AuthService } from '@auth0/auth0-angular';
 })
 export class LoginComponent {
   
-  constructor(private auth: AuthService) {}
+  constructor() {}
 
   login(): void {
-    this.auth.loginWithRedirect();
+    console.log('try to login');
   }
 }
