@@ -1,64 +1,54 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
+import { Auth, authState, signInWithEmailAndPassword, signOut, User } from '@angular/fire/auth';
+import { traceUntilFirst } from '@angular/fire/performance';
+import { Firestore } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
-import { Auth0Client, createAuth0Client } from '@auth0/auth0-spa-js';
-import { BehaviorSubject } from 'rxjs';
-import { environment } from 'src/environments/environment';
+import { EMPTY, map, Observable, Subscription } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private readonly userDisposable: Subscription|undefined;
+  public readonly user: Observable<User | null> = EMPTY;
 
-  private auth0Client: Auth0Client | undefined;
-  private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
-  public token: string | undefined = undefined;
+  showLoginButton = false;
+  showLogoutButton = false;
 
-  constructor(private router: Router) { }
+  constructor(
+    public afs: Firestore,
+    public auth: Auth,
+    public router: Router,
+    public ngZone: NgZone
+  ) {
+    this.user = authState(this.auth);
+    this.userDisposable = authState(this.auth).pipe(
+      traceUntilFirst('auth'),
+      map(u => !!u)
+    ).subscribe(isLoggedIn => {
+      this.showLoginButton = !isLoggedIn;
+      this.showLogoutButton = isLoggedIn;
+    });
+  }
 
-  async checkAuth(): Promise<void> {
-    if (!this.auth0Client) {
-      this.auth0Client = await createAuth0Client({
-        domain: environment.auth0.domain,
-        clientId: environment.auth0.clientId,
-        authorizationParams: {
-          redirect_uri: environment.auth0.redirectUri,
-          audience: environment.auth0.audience
+  // Sign in with email/password
+  async SignIn(email: string, password: string) {
+    try {
+      await signInWithEmailAndPassword(this.auth, email, password);
+      this.user.subscribe((user) => {
+        if (user) {
+          this.router.navigate(['home']);
         }
       });
-    }
-    const isAuthenticated = await this.auth0Client.isAuthenticated();
-    if (!isAuthenticated) {
-      // Redirect user to login page if not authenticated
-      await this.login();
-    } else {
-      // Set authentication status to true if authenticated
-      this.isAuthenticatedSubject.next(true);
-      this.token = await this.auth0Client.getTokenSilently();
+    } catch (error: any) {
+      window.alert(error.message);
     }
   }
 
-  async login(): Promise<void> {
-    await this.auth0Client?.loginWithRedirect({
-      authorizationParams: {
-        redirect_uri: `${window.location.origin}`
-      },
-      appState: { targetUrl: this.router.url },
-    });
-  }
-
-  async logout(): Promise<void> {
-    await this.auth0Client?.logout({
-      clientId: environment.auth0.clientId,
-      logoutParams: {
-        returnTo: `${window.location.origin}`
-      }
-    });
-    this.isAuthenticatedSubject.next(false);
-  }
-
-  async isAuthenticated(): Promise<boolean> {
-    await this.checkAuth();
-    const result = await this.auth0Client?.isAuthenticated() ?? false;
-    return result;
+  // Sign out
+  async SignOut() {
+    await signOut(this.auth);
+    localStorage.removeItem('user');
+    this.router.navigate(['']);
   }
 }

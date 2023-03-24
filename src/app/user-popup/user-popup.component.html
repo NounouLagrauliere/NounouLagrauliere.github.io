@@ -12,11 +12,17 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                ...
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Save changes</button>
+                <form>
+                    <div class="mb-3">
+                      <label for="childName" class="form-label">Nom</label>
+                      <input type="text" class="form-control" id="childName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="childFirstName" class="form-label">Prénom</label>
+                        <input type="text" class="form-control" id="childFirstName">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                  </form>
             </div>
         </div>
     </div>
